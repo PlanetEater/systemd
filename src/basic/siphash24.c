@@ -13,12 +13,23 @@
    this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 
    (Minimal changes made by Lennart Poettering, to make clean for inclusion in systemd)
+   (Refactored by Tom Gundersen to split up in several functions and follow systemd
+    coding style)
 */
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "sparse-endian.h"
+
 #include "siphash24.h"
+#include "util.h"
+
+static inline uint64_t rotate_left(uint64_t x, uint8_t b) {
+        assert(b < 64);
+
+        return (x << b) | (x >> (64 - b));
+}
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -51,6 +62,24 @@ typedef uint8_t u8;
     (state)->v0 += (state)->v3; (state)->v3=ROTL((state)->v3,21); (state)->v3 ^= (state)->v0;     \
     (state)->v2 += (state)->v1; (state)->v1=ROTL((state)->v1,17); (state)->v1 ^= (state)->v2; (state)->v2=ROTL((state)->v2,32); \
   } while(0)
+static inline void sipround(struct siphash *state) {
+        assert(state);
+
+        state->v0 += state->v1;
+        state->v1 = rotate_left(state->v1, 13);
+        state->v1 ^= state->v0;
+        state->v0 = rotate_left(state->v0, 32);
+        state->v2 += state->v3;
+        state->v3 = rotate_left(state->v3, 16);
+        state->v3 ^= state->v2;
+        state->v0 += state->v3;
+        state->v3 = rotate_left(state->v3, 21);
+        state->v3 ^= state->v0;
+        state->v2 += state->v1;
+        state->v1 = rotate_left(state->v1, 17);
+        state->v1 ^= state->v2;
+        state->v2 = rotate_left(state->v2, 32);
+}
 
 void siphash24_init(struct siphash *state, const uint8_t k[16]) {
   u64 k0, k1;
