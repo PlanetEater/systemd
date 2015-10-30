@@ -175,36 +175,35 @@ void siphash24_compress(const void *_in, size_t inlen, struct siphash *state) {
 }
 
 void siphash24_finalize(uint8_t out[8], struct siphash *state) {
-  u64 b;
+        uint64_t b;
 
-  b = state->padding | (( ( u64 )state->inlen ) << 56);
+        b = state->padding | (( ( uint64_t )state->inlen ) << 56);
 #ifdef DEBUG
-  printf( "(%3d) v0 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v0 >> 32 ), ( u32 )state->v0 );
-  printf( "(%3d) v1 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v1 >> 32 ), ( u32 )state->v1 );
-  printf( "(%3d) v2 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v2 >> 32 ), ( u32 )state->v2 );
-  printf( "(%3d) v3 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v3 >> 32 ), ( u32 )state->v3 );
-  printf( "(%3d) padding   %08x %08x\n", ( int )state->inlen, ( u32 )( state->padding >> 32 ), ( u32 )state->padding );
+        printf("(%3zu) v0 %08x %08x\n", state->inlen, (uint32_t) (state->v0 >> 32), (uint32_t)state->v0);
+        printf("(%3zu) v1 %08x %08x\n", state->inlen, (uint32_t) (state->v1 >> 32), (uint32_t)state->v1);
+        printf("(%3zu) v2 %08x %08x\n", state->inlen, (uint32_t) (state->v2 >> 32), (uint32_t)state->v2);
+        printf("(%3zu) v3 %08x %08x\n", state->inlen, (uint32_t) (state->v3 >> 32), (uint32_t)state->v3);
+        printf("(%3zu) padding   %08x %08x\n", state->inlen, (uint32_t) (state->padding >> 32), (uint32_t) state->padding);
 #endif
-  state->v3 ^= b;
-  SIPROUND(state);
-  SIPROUND(state);
-  state->v0 ^= b;
+        state->v3 ^= b;
+        sipround(state);
+        sipround(state);
+        state->v0 ^= b;
 
 #ifdef DEBUG
-  printf( "(%3d) v0 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v0 >> 32 ), ( u32 )state->v0 );
-  printf( "(%3d) v1 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v1 >> 32 ), ( u32 )state->v1 );
-  printf( "(%3d) v2 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v2 >> 32 ), ( u32 )state->v2 );
-  printf( "(%3d) v3 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v3 >> 32 ), ( u32 )state->v3 );
+        printf("(%3zu) v0 %08x %08x\n", state->inlen, (uint32_t) (state->v0 >> 32), (uint32_t) state->v0);
+        printf("(%3zu) v1 %08x %08x\n", state->inlen, (uint32_t) (state->v1 >> 32), (uint32_t) state->v1);
+        printf("(%3zu) v2 %08x %08x\n", state->inlen, (uint32_t) (state->v2 >> 32), (uint32_t) state->v2);
+        printf("(%3zu) v3 %08x %08x\n", state->inlen, (uint32_t) (state->v3 >> 32), (uint32_t) state->v3);
 #endif
-  state->v2 ^= 0xff;
-  SIPROUND(state);
-  SIPROUND(state);
-  SIPROUND(state);
-  SIPROUND(state);
+        state->v2 ^= 0xff;
 
-  b = state->v0 ^ state->v1 ^ state->v2  ^ state->v3;
+        sipround(state);
+        sipround(state);
+        sipround(state);
+        sipround(state);
 
-  U64TO8_LE( out, b );
+        *(le64_t*)out = htole64(state->v0 ^ state->v1 ^ state->v2  ^ state->v3);
 }
 
 /* SipHash-2-4 */
