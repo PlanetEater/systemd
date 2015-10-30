@@ -82,18 +82,21 @@ static inline void sipround(struct siphash *state) {
 }
 
 void siphash24_init(struct siphash *state, const uint8_t k[16]) {
-  u64 k0, k1;
+        uint64_t k0, k1;
 
-  k0 = U8TO64_LE( k );
-  k1 = U8TO64_LE( k + 8 );
+        assert(state);
+        assert(k);
 
-  /* "somepseudorandomlygeneratedbytes" */
-  state->v0 = 0x736f6d6570736575ULL ^ k0;
-  state->v1 = 0x646f72616e646f6dULL ^ k1;
-  state->v2 = 0x6c7967656e657261ULL ^ k0;
-  state->v3 = 0x7465646279746573ULL ^ k1;
-  state->padding = 0;
-  state->inlen = 0;
+        k0 = le64toh(*(le64_t*) k);
+        k1 = le64toh(*(le64_t*) (k + 8));
+
+        /* "somepseudorandomlygeneratedbytes" */
+        state->v0 = 0x736f6d6570736575ULL ^ k0;
+        state->v1 = 0x646f72616e646f6dULL ^ k1;
+        state->v2 = 0x6c7967656e657261ULL ^ k0;
+        state->v3 = 0x7465646279746573ULL ^ k1;
+        state->padding = 0;
+        state->inlen = 0;
 }
 
 void siphash24_compress(const void *_in, size_t inlen, struct siphash *state) {
