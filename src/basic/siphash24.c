@@ -100,10 +100,10 @@ void siphash24_init(struct siphash *state, const uint8_t k[16]) {
 }
 
 void siphash24_compress(const void *_in, size_t inlen, struct siphash *state) {
-  u64 m;
   const u8 *in = _in;
   const u8 *end = in + inlen;
   int left = state->inlen & 7;
+        uint64_t m;
 
   /* update total length */
   state->inlen += inlen;
@@ -134,21 +134,20 @@ void siphash24_compress(const void *_in, size_t inlen, struct siphash *state) {
 
   end -= ( state->inlen % sizeof (u64) );
 
-  for ( ; in < end; in += 8 )
-  {
-    m = U8TO64_LE( in );
+        for ( ; in < end; in += 8 ) {
+                m = le64toh(*(le64_t*) in);
 #ifdef DEBUG
     printf( "(%3d) v0 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v0 >> 32 ), ( u32 )state->v0 );
     printf( "(%3d) v1 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v1 >> 32 ), ( u32 )state->v1 );
     printf( "(%3d) v2 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v2 >> 32 ), ( u32 )state->v2 );
     printf( "(%3d) v3 %08x %08x\n", ( int )state->inlen, ( u32 )( state->v3 >> 32 ), ( u32 )state->v3 );
-    printf( "(%3d) compress %08x %08x\n", ( int )state->inlen, ( u32 )( m >> 32 ), ( u32 )m );
+                printf("(%3zu) compress %08x %08x\n", state->inlen, (uint32_t) (m >> 32), (uint32_t) m);
 #endif
-    state->v3 ^= m;
+                state->v3 ^= m;
     SIPROUND(state);
     SIPROUND(state);
-    state->v0 ^= m;
-  }
+                state->v0 ^= m;
+        }
 
   left = state->inlen & 7;
 
