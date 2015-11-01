@@ -138,7 +138,8 @@ void siphash24_compress(const void *_in, size_t inlen, struct siphash *state) {
         end -= ( state->inlen % sizeof (uint64_t) );
 
         for ( ; in < end; in += 8 ) {
-                m = le64toh(*(le64_t*) in);
+/*                m = le64toh(*(le64_t*) in); */
+                m = U8TO64_LE( in );
 #ifdef DEBUG
                 printf("(%3zu) v0 %08x %08x\n", state->inlen, (uint32_t) (state->v0 >> 32), (uint32_t) state->v0);
                 printf("(%3zu) v1 %08x %08x\n", state->inlen, (uint32_t) (state->v1 >> 32), (uint32_t) state->v1);
